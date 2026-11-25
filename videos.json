@@ -1,0 +1,7 @@
+[
+    { "id": 1, "title": "Vidéo Spéciale", "reward": 4.00, "time": 15, "url": "https://www.w3schools.com/html/mov_bbb.mp4" },
+    { "id": 2, "title": "Publicité 2", "reward": 2.00, "time": 10, "url": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" },
+    { "id": 3, "title": "Ma 3ème Vidéo", "reward": 3.00, "time": 12, "url": "https://media.w3.org/2010/05/sintel/trailer.mp4" },
+    { "id": 4, "title": "Vidéo Bonus 4", "reward": 5.00, "time": 20, "url": "https://media.w3.org/2010/05/bunny/trailer.mp4" },
+    { "id": 5, "title": "Vidéo Bonus 5", "reward": 1.50, "time": 8, "url": "https://www.w3schools.com/html/mov_bbb.mp4" }
+]
