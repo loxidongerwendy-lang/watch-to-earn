@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Watch-to-Earn</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
+  :root { --bg: #000; --card-bg: #111; --card-border: #222; --text-main: #fff; --text-muted: #888; --gold: #e5c158; --gold-bg: rgba(229, 193, 88, 0.1); --btn-white: #fff; --btn-text: #000; --nav-bg: #0a0a0a; }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+  body { background-color: var(--bg); color: var(--text-main); padding-bottom: 80px; overflow-x: hidden; }
+  h1, h2, h3, .serif { font-family: 'Playfair Display', serif; font-weight: 400; }
+  #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: flex; flex-direction: column; justify-content: center; padding: 30px; }
+  #login-screen h1 { font-size: 40px; text-align: center; margin-bottom: 30px; }
+  .input-group { margin-bottom: 15px; }
+  .input-group input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #333; background: #111; color: #fff; font-size: 16px; }
+  .input-group input:focus { outline: none; border-color: var(--gold); }
+  .auth-buttons { display: flex; gap: 10px; margin-top: 20px; }
+  .auth-buttons button { flex: 1; padding: 15px; }
+  .switch-auth { text-align: center; margin-top: 20px; color: var(--text-muted); font-size: 14px; cursor: pointer; }
+  .switch-auth span { color: var(--gold); }
+  .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--nav-bg); display: flex; justify-content: space-around; padding: 10px 0 15px 0; border-top: 1px solid var(--card-border); z-index: 100; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 10px; text-transform: uppercase; cursor: pointer; position: relative; padding-top: 10px;}
+  .nav-item.active { color: var(--text-main); }
+  .nav-item.active::before { content: ''; position: absolute; top: 0; width: 30px; height: 2px; background: var(--gold); border-radius: 2px; }
+  .nav-icon { font-size: 20px; margin-bottom: 4px; }
+  .page { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; margin-top: 10px; }
+  .header h1 { font-size: 32px; line-height: 1.1; }
+  .lang-selector { background: var(--card-bg); border: 1px solid var(--card-border); padding: 8px 12px; border-radius: 8px; font-size: 12px; display: flex; align-items: center; gap: 5px; }
+  .balance-card { background: linear-gradient(135deg, #1a1a1a, #0a0a0a); border: 1px solid var(--card-border); border-radius: 16px; padding: 25px; position: relative; margin-bottom: 25px; }
+  .balance-label { font-size: 10px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; }
+  .balance-amount { font-size: 38px; font-family: 'Playfair Display', serif; font-weight: 600; }
+  .balance-sub { font-size: 16px; color: #aaa; margin-top: 5px; }
+  .card-name { position: absolute; bottom: 20px; left: 25px; font-size: 10px; letter-spacing: 2px; color: #666; text-transform: uppercase; }
+  .btn-white { background: var(--btn-white); color: var(--btn-text); border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; box-shadow: 0 4px 0 #999; transition: transform 0.1s, box-shadow 0.1s; }
+  .btn-white:active { transform: translateY(4px); box-shadow: 0 0 0 #999; }
+  .btn-gold { background: var(--gold); color: #000; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 4px 0 #a3822c; }
+  .btn-gold:active { transform: translateY(4px); box-shadow: 0 0 0 #a3822c; }
+  .card-list { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 15px; margin-bottom: 15px; }
+  .video-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #222; cursor: pointer; }
+  .video-item:last-child { border-bottom: none; }
+  .row-left { display: flex; align-items: center; gap: 15px; }
+  .icon-box { width: 40px; height: 40px; border-radius: 10px; background: #1a1a1a; border: 1px solid #333; display: flex; justify-content: center; align-items: center; font-size: 18px; }
+  .row-title { font-size: 15px; font-weight: 500; }
+  .row-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
+  .badge-green { background: rgba(74, 222, 128, 0.1); color: #4ade80; border: 1px solid #4ade80; }
+  .badge-gold { background: var(--gold-bg); color: var(--gold); border: 1px solid var(--gold); }
+  .badge-red { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; }
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+  .modal-overlay.active { display: flex; }
+  .video-container { width: 100%; max-width: 400px; background: #000; border-radius: 16px; overflow: hidden; position: relative; border: 1px solid #333; }
+  .video-container video { width: 100%; display: block; }
+  .timer-overlay { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.7); padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+  .modal-actions { margin-top: 20px; width: 100%; max-width: 400px; display: flex; gap: 10px; }
+  .modal-actions button { flex: 1; }
+  .stats-row { display: flex; border: 1px solid var(--card-border); border-radius: 16px; margin-bottom: 20px; }
+  .stat-box { flex: 1; text-align: center; padding: 20px 0; border-right: 1px solid var(--card-border); }
+  .stat-box:last-child { border-right: none; }
+  .stat-val { font-size: 28px; font-family: 'Playfair Display', serif; }
+  .stat-label { font-size: 9px; text-transform: uppercase; color: var(--text-muted); margin-top: 5px; letter-spacing: 1px; }
+  .ref-box { background: #111; border: 1px solid #333; border-radius: 12px; display: flex; align-items: center; padding: 5px; padding-left: 15px; margin-bottom: 30px; }
+  .ref-input { flex: 1; background: transparent; border: none; color: #888; font-size: 12px; outline: none; }
+  .profile-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 20px; }
+  .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
+  .avatar { width: 60px; height: 60px; border-radius: 16px; background: #1a1a1a; border: 1px solid #333; display: flex; justify-content: center; align-items: center; font-size: 28px; font-family: 'Playfair Display', serif; color: var(--gold); text-transform: uppercase; }
+  .profile-name { font-size: 28px; font-family: 'Playfair Display', serif; margin-bottom: 5px; }
+  .menu-list { border-top: 1px solid var(--card-border); }
+  .menu-item { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid var(--card-border); cursor: pointer; }
+  .menu-left { display: flex; align-items: center; gap: 15px; }
+  .menu-icon { width: 36px; height: 36px; border-radius: 10px; background: #1a1a1a; display: flex; justify-content: center; align-items: center; font-size: 16px; color: #ccc; }
+  .arrow { color: #555; font-size: 18px; }
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <h1>Watch-to-Earn</h1>
+  <div class="input-group"><input type="text" id="auth-username" placeholder="Nom d'utilisateur"></div>
+  <div class="input-group"><input type="password" id="auth-password" placeholder="Mot de passe"></div>
+  <div class="auth-buttons">
+    <button class="btn-white" onclick="login()">Se connecter</button>
+    <button class="btn-gold" onclick="register()">S'inscrire</button>
+  </div>
+  <div class="switch-auth" id="auth-msg"></div>
+</div>
+
+<div id="page-accueil" class="page active">
+  <div class="header">
+    <h1>bonjour,<br><span id="ui-username-main">...</span></h1>
+    <div class="lang-selector">🌐 FRANÇAIS ▾</div>
+  </div>
+  <div class="balance-card">
+    <div class="balance-label">WATCH-TO-EARN</div>
+    <div class="balance-amount" id="main-balance">$0.00 USD</div>
+    <div class="balance-sub">≈ HTG 0 HTG</div>
+    <div class="card-name" id="ui-username-card">...</div>
+  </div>
+  <button class="btn-white" style="margin-bottom: 25px;" onclick="openWithdrawModal()">Retirer</button>
+  <div class="card-list" style="display: flex; align-items: center; justify-content: space-between;">
+    <div class="row-left">
+      <div class="icon-box" style="color: var(--gold);">🎁</div>
+      <div><div class="row-title">Prime quotidienne</div><div class="row-sub" style="color: var(--gold);">$3.00 USD · ≈ HTG 393 HTG</div></div>
+    </div>
+    <button class="btn-gold" id="bonus-btn" onclick="claimBonus()">Récupérer</button>
+  </div>
+</div>
+
+<div id="page-gagner" class="page">
+  <div class="header" style="margin-bottom: 15px;"><h1 style="font-size: 28px;">regard<br>er &<br>gagner</h1></div>
+  <div class="card-list" id="video-list-container"></div>
+</div>
+
+<div id="page-equipe" class="page">
+  <div class="header"><h1 style="font-size: 32px;">votre équipe</h1></div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-val" id="team-count">0</div><div class="stat-label">MEMBRES</div></div>
+    <div class="stat-box"><div class="stat-val" style="color: var(--gold);">1$</div><div class="stat-label">PAR GAIN</div></div>
+  </div>
+  <div class="ref-box">
+    <input type="text" class="ref-input" id="ref-link" readonly>
+    <button class="btn-white" style="padding: 10px 15px; font-size: 12px;" onclick="copyRef()">Copier</button>
+  </div>
+  <p style="font-size: 12px; color: #888; text-align: center;">Gagnez 1$ à chaque fois qu'un membre de votre équipe regarde une vidéo !</p>
+</div>
+
+<div id="page-portefeuille" class="page">
+  <div class="header" style="margin-top: 20px;"><h1 style="font-size: 32px;">portefeuille</h1></div>
+  <div class="card-list" style="padding: 25px 20px;">
+    <div style="font-size: 10px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;">SOLDE</div>
+    <div style="font-size: 36px; font-family: 'Playfair Display', serif;" id="wallet-balance">$0.00 USD</div>
+    <div style="font-size: 16px; color: #aaa; margin-top: 5px;">≈ HTG 0 HTG</div>
+  </div>
+  <h3 class="serif" style="font-size: 20px; margin-bottom: 15px;">Historique</h3>
+  <div class="card-list" id="history-list"></div>
+</div>
+
+<div id="page-moi" class="page">
+  <div class="profile-card">
+    <div class="avatar" id="ui-avatar" style="margin: 0 auto 10px auto;">?</div>
+    <div class="profile-name" id="ui-username-moi" style="font-size: 24px;">...</div>
+    <div style="font-size: 12px; color: var(--gold); margin-top: 5px;">Statut : Actif 🟢</div>
+    <div style="margin-top: 15px; font-size: 14px; color: #ccc;">Solde actuel : <span id="profile-balance" style="color: #4ade80; font-weight: bold;">$0.00</span></div>
+    <div style="margin-top: 5px; font-size: 14px; color: var(--gold);">Niveau : <span id="profile-level">Débutant</span> (<span id="profile-videos">0</span> vidéos)</div>
+  </div>
+  <div class="menu-list">
+    <div class="menu-item" onclick="openAccountPage()"><div class="menu-left"><div class="menu-icon">👤</div><span>Mon Compte</span></div><span class="arrow">›</span></div>
+    <div class="menu-item" onclick="openPaymentModal()"><div class="menu-left"><div class="menu-icon">💳</div><span>Compte de paiement</span></div><span class="arrow">›</span></div>
+    <div class="menu-item" onclick="switchTab('regles', null)"><div class="menu-left"><div class="menu-icon">📖</div><span>Règles & Comment ça marche</span></div><span class="arrow">›</span></div>
+    <div class="menu-item" onclick="alert('Support: support@watchtoearn.com')"><div class="menu-left"><div class="menu-icon">❓</div><span>Aide & Support</span></div><span class="arrow">›</span></div>
+    <div class="menu-item" onclick="logout()" style="border: none; margin-top: 10px;"><div class="menu-left"><div class="menu-icon" style="color: #ef4444;">🚪</div><span style="color: #ef4444;">Déconnexion</span></div></div>
+  </div>
+</div>
+
+<div id="page-compte" class="page">
+  <div class="header" style="margin-bottom: 20px;">
+    <button class="btn-white" style="padding: 8px 16px; font-size: 12px;" onclick="switchTab('moi', document.querySelector('.nav-item:nth-child(5)'))">← Retour</button>
+    <h1 style="font-size: 24px;">Mon Compte</h1>
+    <div style="width: 40px;"></div>
+  </div>
+  <div style="background: #fff; border-radius: 20px; padding: 20px; color: #000; margin-bottom: 20px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+      <div>
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 5px;" id="compte-nom">...</h2>
+        <div style="font-size: 14px; color: #555; display: flex; align-items: center; gap: 5px;"><span>📱 MonCash / NatCash</span></div>
+      </div>
+      <div style="width: 60px; height: 60px; border-radius: 50%; background: #ffebee; display: flex; justify-content: center; align-items: center; font-size: 28px; font-weight: bold; color: #d32f2f; border: 2px solid #fff;" id="compte-avatar">L</div>
+    </div>
+    <div style="font-size: 14px; color: #333; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;"><span>✉️</span> <span id="compte-email">...</span></div>
+    <div style="display: inline-block; background: #fff8e1; color: #f57c00; padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; border: 1px solid #ffe0b2;">⏳ PA VERIFYE</div>
+  </div>
+  <h3 class="serif" style="color: #fff; font-size: 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">🛡️ Sekirite</h3>
+  <div class="menu-list" style="background: var(--card-bg); border-radius: 16px; border: 1px solid var(--card-border); padding: 0 15px;">
+    <div class="menu-item" onclick="alert('Fonctionnalité à venir !')" style="border-bottom: none;">
+      <div class="menu-left"><div class="menu-icon" style="background: #e3f2fd; color: #1976d2;">🔑</div><div><div style="font-size: 15px; font-weight: 600; color: #fff;">Chanje PIN</div><div style="font-size: 12px; color: #aaa;">Modifye PIN 4 chif ou</div></div></div>
+      <span class="arrow">›</span>
+    </div>
+  </div>
+</div>
+
+<div id="page-regles" class="page">
+  <div class="header" style="margin-bottom: 20px;">
+    <button class="btn-white" style="padding: 8px 16px; font-size: 12px;" onclick="switchTab('moi', document.querySelector('.nav-item:nth-child(5)'))">← Retour</button>
+    <h1 style="font-size: 24px;">Règles</h1>
+    <div style="width: 40px;"></div>
+  </div>
+  <div class="card-list" style="padding: 20px;">
+    <h3 class="serif" style="color: var(--gold); font-size: 20px; margin-bottom: 15px;">Comment gagner de l'argent ?</h3>
+    <div style="margin-bottom: 15px;">
+      <div style="font-weight: 600; color: #fff; margin-bottom: 5px;">🎬 1. Regarder des vidéos</div>
+      <div style="font-size: 13px; color: #aaa; line-height: 1.5;">Allez dans l'onglet "GAGNER", choisissez une vidéo, regardez-la jusqu'au bout et cliquez sur "Récupérer". L'argent est ajouté instantanément à votre solde.</div>
+    </div>
+    <div style="margin-bottom: 15px;">
+      <div style="font-weight: 600; color: #fff; margin-bottom: 5px;">👥 2. Parrainer des amis</div>
+      <div style="font-size: 13px; color: #aaa; line-height: 1.5;">Allez dans l'onglet "ÉQUIPE", copiez votre lien unique et partagez-le. Chaque fois qu'un ami s'inscrit avec votre lien, vous gagnez <b style="color:var(--gold);">1.00$ USD</b> automatiquement !</div>
+    </div>
+    <div style="margin-bottom: 15px;">
+      <div style="font-weight: 600; color: #fff; margin-bottom: 5px;">🎁 3. Prime quotidienne</div>
+      <div style="font-size: 13px; color: #aaa; line-height: 1.5;">Revenez chaque jour pour récupérer une prime de bienvenue (bientôt disponible).</div>
+    </div>
+    <h3 class="serif" style="color: var(--gold); font-size: 20px; margin-top: 25px; margin-bottom: 15px;">Retraits</h3>
+    <div style="margin-bottom: 15px;">
+      <div style="font-weight: 600; color: #fff; margin-bottom: 5px;">💸 Le minimum est de 10$</div>
+      <div style="font-size: 13px; color: #aaa; line-height: 1.5;">Pour retirer votre argent, cliquez sur "Retirer" sur la page d'accueil. Entrez le montant et votre numéro MonCash, NatCash ou votre email PayPal. Votre demande sera traitée sous 24h à 48h.</div>
+    </div>
+    <div style="margin-bottom: 15px;">
+      <div style="font-weight: 600; color: #fff; margin-bottom: 5px;">⚠️ Important</div>
+      <div style="font-size: 13px; color: #aaa; line-height: 1.5;">Nous ne tolérons pas la triche (bots, multi-comptes). Tout compte suspect sera banni sans avertissement.</div>
+    </div>
+  </div>
+</div>
+
+<div id="page-admin" class="page" style="background: #1a1a1a; min-height: 100vh;">
+  <div class="header">
+    <h1 style="font-size: 24px;">Panneau Admin</h1>
+    <button class="btn-white" style="padding: 8px 12px; font-size: 12px;" onclick="logout()">Quitter</button>
+  </div>
+  <div id="admin-list" class="card-list"></div>
+</div>
+
+<div class="bottom-nav" id="main-nav" style="display: none;">
+  <div class="nav-item active" onclick="switchTab('accueil', this)"><span class="nav-icon">🏠</span><span>ACCUEIL</span></div>
+  <div class="nav-item" onclick="switchTab('gagner', this)"><span class="nav-icon">▶</span><span>GAGNER</span></div>
+  <div class="nav-item" onclick="switchTab('equipe', this)"><span class="nav-icon">👥</span><span>ÉQUIPE</span></div>
+  <div class="nav-item" onclick="switchTab('portefeuille', this)"><span class="nav-icon">👛</span><span>PORTEFEUILLE</span></div>
+  <div class="nav-item" onclick="switchTab('moi', this)"><span class="nav-icon">👤</span><span>MOI</span></div>
+</div>
+
+<div class="modal-overlay" id="videoModal">
+  <div class="video-container">
+    <div class="timer-overlay" id="timerDisplay">Temps: 0s / 0s</div>
+    <video id="adVideo" controls playsinline poster="https://via.placeholder.com/400x250/111/444?text=Publicité"><source src="" type="video/mp4"></video>
+  </div>
+  <div class="modal-actions">
+    <button class="btn-white" style="background: #333; color: #fff;" onclick="closeVideoModal()">Fermer</button>
+    <button class="btn-gold" id="claimVideoBtn" disabled onclick="claimVideoReward()">Récupérer (0s)</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="withdrawModal">
+  <div class="card-list" style="width: 100%; max-width: 350px; padding: 20px;">
+    <h3 class="serif" style="margin-bottom: 15px;">Retirer de l'argent</h3>
+    <label style="font-size: 12px; color: #aaa;">Montant (min 10$) :</label>
+    <input type="number" id="withdrawAmount" placeholder="Montant en USD" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; margin-bottom: 10px; margin-top: 5px;">
+    <label style="font-size: 12px; color: #aaa;">Méthode :</label>
+    <select id="withdrawMethod" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; margin-bottom: 10px; margin-top: 5px;">
+      <option value="MonCash">MonCash</option>
+      <option value="NatCash">NatCash</option>
+      <option value="PayPal">PayPal</option>
+    </select>
+    <label style="font-size: 12px; color: #aaa;">Votre numéro (ou email) :</label>
+    <input type="text" id="withdrawDetails" placeholder="Ex: 3712-3456 ou email" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; margin-bottom: 20px; margin-top: 5px;">
+    <div style="display: flex; gap: 10px;">
+      <button class="btn-white" style="flex: 1; background: #222; color: #fff;" onclick="document.getElementById('withdrawModal').classList.remove('active')">Annuler</button>
+      <button class="btn-gold" style="flex: 1;" onclick="confirmWithdraw()">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="paymentModal">
+  <div class="card-list" style="width: 100%; max-width: 350px; padding: 20px;">
+    <h3 class="serif" style="margin-bottom: 15px;">Compte de paiement</h3>
+    <p style="font-size: 12px; color: #888; margin-bottom: 15px;">Enregistrez vos informations.</p>
+    <label style="font-size: 12px; color: #aaa;">Numéro MonCash / NatCash :</label>
+    <input type="text" id="moncash-input" placeholder="Ex: 3712-3456" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; margin-bottom: 10px; margin-top: 5px;">
+    <label style="font-size: 12px; color: #aaa;">Email PayPal :</label>
+    <input type="email" id="paypal-input" placeholder="Ex: email@domaine.com" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; margin-bottom: 20px; margin-top: 5px;">
+    <div style="display: flex; gap: 10px;">
+      <button class="btn-white" style="flex: 1; background: #222; color: #fff;" onclick="document.getElementById('paymentModal').classList.remove('active')">Fermer</button>
+      <button class="btn-gold" style="flex: 1;" onclick="savePaymentInfo()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-msg" style="display:none; position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:rgba(255,255,255,0.9); color:#000; padding:12px 24px; border-radius:30px; font-size:14px; font-weight:500; z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,0.3); text-align:center;">Copié</div>
+
+<script>
+  const API_URL = window.location.origin;
+  let currentUser = localStorage.getItem('adselect_user') || null;
+  let currentBalance = 0;
+  let currentVideoReward = 0;
+  let currentVideoTime = 0;
+  const ADMIN_PASSWORD = "admin123"; 
+
+  async function login() {
+    const user = document.getElementById('auth-username').value;
+    const pass = document.getElementById('auth-password').value;
+    if(user === "admin" && pass === ADMIN_PASSWORD) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-nav').style.display = 'none';
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-admin').classList.add('active');
+        loadAdminWithdrawals();
+        return;
+    }
+    try {
+      const res = await fetch(`${API_URL}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: user, password: pass }) });
+      const data = await res.json();
+      if (data.success) { currentUser = data.username; localStorage.setItem('adselect_user', data.username); window.location.reload(); } 
+      else { document.getElementById('auth-msg').innerHTML = `<span style="color:red">${data.error}</span>`; }
+    } catch (e) { alert("Erreur serveur"); }
+  }
+
+  async function register() {
+    const user = document.getElementById('auth-username').value;
+    const pass = document.getElementById('auth-password').value;
+    const urlParams = new URLSearchParams(window.location.search);
+    const referrer = urlParams.get('ref');
+    try {
+      const res = await fetch(`${API_URL}/api/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: user, password: pass, referrer }) });
+      const data = await res.json();
+      if (data.success) { alert("Compte créé ! Connecte-toi maintenant."); document.getElementById('auth-msg').innerHTML = `<span style="color:var(--gold)">Compte créé !</span>`; } 
+      else { document.getElementById('auth-msg').innerHTML = `<span style="color:red">${data.error}</span>`; }
+    } catch (e) { alert("Erreur serveur"); }
+  }
+
+  function logout() { localStorage.removeItem('adselect_user'); window.location.reload(); }
+
+  async function loadData() {
+    if (!currentUser) { document.getElementById('login-screen').style.display = 'flex'; document.getElementById('main-nav').style.display = 'none'; return; }
+    document.getElementById('login-screen').style.display = 'none'; document.getElementById('main-nav').style.display = 'flex';
+    document.getElementById('ui-username-main').textContent = currentUser;
+    document.getElementById('ui-username-card').textContent = currentUser;
+    document.getElementById('ui-username-moi').textContent = currentUser;
+    document.getElementById('ui-avatar').textContent = currentUser.charAt(0);
+    const safeName = currentUser.replace(/\s+/g, '-');
+    document.getElementById('ref-link').value = `${window.location.origin}/?ref=${safeName}`;
+
+    try {
+      const res = await fetch(`${API_URL}/api/profile/${currentUser}`);
+      const data = await res.json();
+      currentBalance = data.user.balance;
+      updateBalanceUI(currentBalance);
+      renderHistory(data.history);
+      document.getElementById('team-count').textContent = data.teamCount;
+      document.getElementById('profile-balance').textContent = `$${currentBalance.toFixed(2)}`;
+      
+      const watched = data.user.videos_watched || 0;
+      document.getElementById('profile-videos').textContent = watched;
+      let level = "Débutant";
+      if (watched >= 5 && watched < 10) level = "Actif";
+      if (watched >= 10) level = "Expert";
+      document.getElementById('profile-level').textContent = level;
+
+      if (data.user.last_bonus === data.today) { const btn = document.getElementById('bonus-btn'); btn.disabled = true; btn.style.opacity = "0.5"; btn.textContent = "Déjà pris"; }
+    } catch (err) { console.error(err); }
+  }
+
+  async function loadVideos() {
+    try {
+      const res = await fetch(`${API_URL}/api/videos`);
+      const videos = await res.json();
+      const container = document.getElementById('video-list-container');
+      container.innerHTML = '';
+      videos.forEach(video => {
+        const div = document.createElement('div');
+        div.className = 'video-item';
+        div.onclick = () => openVideoModal(video);
+        div.innerHTML = `<div style="width:50px; height:50px; border-radius:50%; background:linear-gradient(135deg, #2c3e50, #000); display:flex; justify-content:center; align-items:center; font-size:20px;">▶</div>
+            <div style="flex:1; margin-left:15px;"><div style="font-size:14px; font-weight:600; margin-bottom:4px;">${video.title}</div><div style="font-size:12px; color:var(--gold); font-family:'Playfair Display',serif;">+$${video.reward.toFixed(2)} USD · ${video.time}s</div></div>
+            <div class="badge badge-gold">GAGNER</div>`;
+        container.appendChild(div);
+      });
+    } catch (e) { console.error("Erreur vidéos", e); }
+  }
+
+  function updateBalanceUI(balance) {
+    const htg = (balance * 131).toFixed(0);
+    document.getElementById('main-balance').textContent = `$${balance.toFixed(2)} USD`;
+    document.querySelector('.balance-sub').textContent = `≈ HTG ${htg} HTG`;
+    document.getElementById('wallet-balance').textContent = `$${balance.toFixed(2)} USD`;
+    document.querySelector('#page-portefeuille div[style*="font-size: 16px"]').textContent = `≈ HTG ${htg} HTG`;
+  }
+
+  function renderHistory(history) {
+    const list = document.getElementById('history-list');
+    list.innerHTML = '';
+    if (history.length === 0) { list.innerHTML = '<div style="color:#888; text-align:center; padding:20px;">Aucun historique</div>'; return; }
+    history.forEach(item => {
+      const htg = Math.abs(item.amount * 131).toFixed(0);
+      const isGain = item.type === 'gain';
+      const color = isGain ? 'var(--gold)' : '#ef4444';
+      const sign = isGain ? '+' : '-';
+      const title = isGain ? 'Gain' : 'Retrait';
+      const badgeClass = isGain ? 'badge-green' : 'badge-red';
+      list.innerHTML += `<div class="card-row"><div class="row-left"><div class="icon-box">${isGain ? '+' : '💸'}</div><div><div class="row-title">${title}</div><div class="row-sub">${item.date}</div></div></div><div style="text-align: right;"><div style="font-size: 14px; font-family: 'Playfair Display', serif; color: ${color};">${sign}$${Math.abs(item.amount).toFixed(2)} USD</div><div class="badge ${badgeClass}" style="margin-top: 5px;">ACTIF</div></div></div>`;
+    });
+  }
+
+  function openVideoModal(video) {
+    document.getElementById('videoModal').classList.add('active');
+    const videoElement = document.getElementById('adVideo');
+    videoElement.src = video.url; videoElement.currentTime = 0; let watchTime = 0; videoElement.play();
+    currentVideoReward = video.reward; currentVideoTime = video.time;
+    const interval = setInterval(() => { if (!videoElement.paused && !videoElement.ended) { watchTime++; updateVideoUI(watchTime, video.time); } }, 1000);
+    window.videoInterval = interval;
+  }
+
+  function closeVideoModal() { document.getElementById('videoModal').classList.remove('active'); document.getElementById('adVideo').pause(); clearInterval(window.videoInterval); }
+
+  function updateVideoUI(time, totalTime) {
+    document.getElementById('timerDisplay').textContent = `Temps: ${time}s / ${totalTime}s`;
+    const btn = document.getElementById('claimVideoBtn');
+    if (time >= totalTime) { btn.disabled = false; btn.textContent = `Récupérer $${currentVideoReward.toFixed(2)}`; } 
+    else { btn.disabled = true; btn.textContent = `Récupérer (${time}s)`; }
+  }
+
+  async function claimVideoReward() {
+    const btn = document.getElementById('claimVideoBtn'); btn.disabled = true; btn.textContent = "Envoi...";
+    try {
+      const res = await fetch(`${API_URL}/api/earn`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: currentVideoReward, username: currentUser }) });
+      const data = await res.json();
+      if (data.success) { alert("Gain ajouté !"); closeVideoModal(); loadData(); } else { alert(data.error); closeVideoModal(); }
+    } catch (e) { alert("Erreur"); }
+  }
+
+  function claimBonus() {
+      const toast = document.createElement('div');
+      toast.innerHTML = "🎁 La prime quotidienne sera bientôt disponible !";
+      toast.style.cssText = `position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #111; color: var(--gold); border: 1px solid var(--gold); padding: 15px 25px; border-radius: 12px; font-weight: 600; font-size: 14px; z-index: 9999; box-shadow: 0 4px 15px rgba(229, 193, 88, 0.2); opacity: 0; transition: opacity 0.3s ease;`;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.style.opacity = '1', 10);
+      setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+  }
+
+  function openWithdrawModal() { document.getElementById('withdrawModal').classList.add('active'); document.getElementById('withdrawAmount').value = currentBalance.toFixed(2); }
+
+  async function confirmWithdraw() {
+    const amount = parseFloat(document.getElementById('withdrawAmount').value);
+    const method = document.getElementById('withdrawMethod').value;
+    const details = document.getElementById('withdrawDetails').value;
+    if (isNaN(amount) || amount < 10) return alert("Minimum 10$.");
+    if (!details) return alert("Veuillez entrer votre numéro ou email de paiement.");
+    try {
+      const res = await fetch(`${API_URL}/api/withdraw`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount, method, username: currentUser, details }) });
+      const data = await res.json();
+      if (data.success) { loadData(); document.getElementById('withdrawModal').classList.remove('active'); alert(data.message); } else { alert(data.error); }
+    } catch (e) { alert("Erreur"); }
+  }
+
+  function copyRef() {
+    const copyText = document.getElementById("ref-link"); copyText.select(); copyText.setSelectionRange(0, 99999); navigator.clipboard.writeText(copyText.value);
+    const toast = document.getElementById('toast-msg'); toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; }, 3000);
+  }
+
+  function switchTab(tabId, navElement) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + tabId).classList.add('active');
+    if(navElement) navElement.classList.add('active');
+  }
+
+  function openAccountPage() {
+      document.getElementById('compte-nom').textContent = currentUser;
+      document.getElementById('compte-avatar').textContent = currentUser.charAt(0);
+      const paymentInfo = JSON.parse(localStorage.getItem('adselect_payment') || '{}');
+      document.getElementById('compte-email').textContent = paymentInfo.paypal || 'Non enregistré';
+      switchTab('compte', null);
+  }
+
+  function openPaymentModal() { document.getElementById('paymentModal').classList.add('active'); }
+
+  function savePaymentInfo() {
+      const moncash = document.getElementById('moncash-input').value;
+      const paypal = document.getElementById('paypal-input').value;
+      if(!moncash && !paypal) return alert("Remplissez au moins un champ.");
+      localStorage.setItem('adselect_payment', JSON.stringify({ moncash, paypal }));
+      alert("Informations enregistrées !");
+      document.getElementById('paymentModal').classList.remove('active');
+  }
+
+  async function loadAdminWithdrawals() {
+      const res = await fetch(`${API_URL}/api/admin/withdrawals`);
+      const requests = await res.json();
+      const list = document.getElementById('admin-list');
+      list.innerHTML = '';
+      if(requests.length === 0) { list.innerHTML = '<div style="color:#fff; text-align:center;">Aucune demande en attente.</div>'; return; }
+      requests.forEach(req => {
+          list.innerHTML += `
+            <div class="card-row" style="border-bottom: 1px solid #333; padding: 15px 0;">
+                <div class="row-left">
+                    <div class="icon-box" style="background: #333; color: #fff;">💸</div>
+                    <div><div class="row-title" style="color:#fff;">${req.username}</div><div class="row-sub">${req.method} - <b style="color:var(--gold);">${req.details}</b> - ${req.date}</div></div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="color: var(--gold); font-weight: bold; font-size: 16px;">$${req.amount.toFixed(2)}</div>
+                    <button class="btn-gold" style="padding: 5px 10px; font-size: 10px; margin-top: 5px;" onclick="payRequest(${req.id})">Marquer Payé</button>
+                </div>
+            </div>
+          `;
+      });
+  }
+
+  async function payRequest(id) {
+      if(!confirm("Confirmez-vous avoir envoyé l'argent manuellement ?")) return;
+      await fetch(`${API_URL}/api/admin/pay`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+      loadAdminWithdrawals();
+  }
+
+  window.onload = () => { loadData(); loadVideos(); };
+</script>
+</body>
+                                                                                                                                                                                                                                                      </html>
